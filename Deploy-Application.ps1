@@ -61,15 +61,20 @@ Try {
 	##* VARIABLE DECLARATION
 	##*===============================================
 	## Variables: Application
-	[string]$appVendor = ''
-	[string]$appName = ''
-	[string]$appVersion = ''
+	[string]$appVendor = 'Microsoft'
+	[string]$appName = 'Teams'
+	[string]$appVersion = '1.3.0.28779'
 	[string]$appArch = ''
 	[string]$appLang = 'EN'
 	[string]$appRevision = '01'
 	[string]$appScriptVersion = '1.0.0'
-	[string]$appScriptDate = 'XX/XX/20XX'
-	[string]$appScriptAuthor = '<author name>'
+	[string]$appScriptDate = '03/12/2020'
+	[string]$appScriptAuthor = 'Rakhesh Sasidharan'
+
+	## Variables added by me to track installation status in SCCM. I tattoo these in the registry.
+	[string]$appRegKey = 'HKLM\SOFTWARE\TheFirm\Software'
+	[string]$appRegKeyName = 'Teams'
+	[string]$appRegKeyValue = '1.3.0.28779' # !!When you change this version be sure to update the detection method!!
 	##*===============================================
 	## Variables: Install Titles (Only set here to override defaults set by the toolkit)
 	[string]$installName = ''
@@ -116,14 +121,23 @@ Try {
 		##*===============================================
 		[string]$installPhase = 'Pre-Installation'
 
-		## Show Welcome Message, close Internet Explorer if required, allow up to 3 deferrals, verify there is enough disk space to complete the install, and persist the prompt
-		Show-InstallationWelcome -CloseApps 'iexplore' -AllowDefer -DeferTimes 3 -CheckDiskSpace -PersistPrompt
+		## Prompt the user to close the following applications if they are running and
+		## allow the option to defer the installation up to 3 times:
+		Show-InstallationWelcome -CloseApps 'Teams' -AllowDefer -DeferTimes 3 
 
 		## Show Progress Message (with the default message)
-		Show-InstallationProgress
+		Show-InstallationProgress -StatusMessage 'Removing any existing Teams installs...'
 
 		## <Perform Pre-Installation tasks here>
-
+		## Clean up any existing Teams installs. I remove the MWI installer and also remove per user installs. 
+		## I do the latter via getting a list of all profiles on this machine and removing the Teams folder 
+		## from %localappdata% as well as deleting the regkey from HKCU.
+		Remove-MSIApplications -Name 'Teams Machine-Wide Installer'
+		$profilePaths = Get-UserProfiles | Select-Object -ExpandProperty 'ProfilePath' 
+        foreach ($profile in $profilePaths ) {
+        	Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
+            Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Office\Teams'
+		}
 
 		##*===============================================
 		##* INSTALLATION
@@ -137,7 +151,10 @@ Try {
 		}
 
 		## <Perform Installation tasks here>
-
+		## Note that "ALLUSER=1" is tyically for VDI environments only. The Teams application doesn’t auto-update whenever there is a new version.
+		## "ALLUSERS=1" means Teams is visible in Add/ Remove programs and anyone with admin priviliges can uninstall
+		## OPTIONS="noAutoStart=true" stops Teams from autolaunching
+		Execute-MSI -Action 'Install' -Path "$dirFiles\Teams_windows_x64.msi" -Parameters '/qn /NORESTART ALLUSER=1 ALLUSERS=1 OPTIONS="noAutoStart=true"'
 
 		##*===============================================
 		##* POST-INSTALLATION
@@ -145,6 +162,7 @@ Try {
 		[string]$installPhase = 'Post-Installation'
 
 		## <Perform Post-Installation tasks here>
+		Set-RegistryKey -Key "$appRegKey" -Name "$appRegKeyName" -Value "$appRegKeyValue" -Type String -ContinueOnError:$True
 
 		## Display a message at the end of the install
 		If (-not $useDefaultMsi) { Show-InstallationPrompt -Message 'You can customize text to appear at the end of an install or remove it completely for unattended installations.' -ButtonRightText 'OK' -Icon Information -NoWait }
@@ -155,9 +173,6 @@ Try {
 		##* PRE-UNINSTALLATION
 		##*===============================================
 		[string]$installPhase = 'Pre-Uninstallation'
-
-		## Show Welcome Message, close Internet Explorer with a 60 second countdown before automatically closing
-		Show-InstallationWelcome -CloseApps 'iexplore' -CloseAppsCountdown 60
 
 		## Show Progress Message (with the default message)
 		Show-InstallationProgress
@@ -177,6 +192,7 @@ Try {
 		}
 
 		# <Perform Uninstallation tasks here>
+		Execute-MSI -Action 'Install' -Path "$dirFiles\Teams_windows_x64.msi" -Parameters '/qn /NORESTART ALLUSER=1 ALLUSERS=1'
 
 
 		##*===============================================
@@ -185,8 +201,14 @@ Try {
 		[string]$installPhase = 'Post-Uninstallation'
 
 		## <Perform Post-Uninstallation tasks here>
+		## Delete Teams from all the local profiles. Also delete the registry keys from HKCU.
+		$profilePaths = Get-UserProfiles | Select-Object -ExpandProperty 'ProfilePath' 
+        foreach ($profile in $profilePaths ) {
+        	Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
+            Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Office\Teams'
+		}
 
-
+		Remove-RegistryKey -Key "$appRegKey" -Name $appRegKeyName
 	}
 	ElseIf ($deploymentType -ieq 'Repair')
 	{
