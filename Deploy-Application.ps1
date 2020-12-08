@@ -121,23 +121,23 @@ Try {
 		##*===============================================
 		[string]$installPhase = 'Pre-Installation'
 
-		## Prompt the user to close the following applications if they are running and
-		## allow the option to defer the installation up to 3 times:
-		Show-InstallationWelcome -CloseApps 'Teams' -AllowDefer -DeferTimes 3 
-
-		## Show Progress Message (with the default message)
-		Show-InstallationProgress -StatusMessage 'Removing any existing Teams installs...'
-
 		## <Perform Pre-Installation tasks here>
 		## Clean up any existing Teams installs. I remove the MWI installer and also remove per user installs. 
 		## I do the latter via getting a list of all profiles on this machine and removing the Teams folder 
 		## from %localappdata% as well as deleting the regkey from HKCU.
 		Remove-MSIApplications -Name 'Teams Machine-Wide Installer'
+		Remove-MSIApplications -Name 'Microsoft Teams'
+
 		$profilePaths = Get-UserProfiles | Select-Object -ExpandProperty 'ProfilePath' 
         foreach ($profile in $profilePaths ) {
         	Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
-            Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Office\Teams'
 		}
+
+		[scriptblock]$HKCURegistryChanges = {
+			Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Office\Teams' -SID $UserProfile.SID
+			Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Teams' -SID $UserProfile.SID
+		}
+		Invoke-HKCURegistrySettingsForAllUsers -RegistrySettings $HKCURegistryChanges
 
 		##*===============================================
 		##* INSTALLATION
@@ -164,8 +164,6 @@ Try {
 		## <Perform Post-Installation tasks here>
 		Set-RegistryKey -Key "$appRegKey" -Name "$appRegKeyName" -Value "$appRegKeyValue" -Type String -ContinueOnError:$True
 
-		## Display a message at the end of the install
-		If (-not $useDefaultMsi) { Show-InstallationPrompt -Message 'You can customize text to appear at the end of an install or remove it completely for unattended installations.' -ButtonRightText 'OK' -Icon Information -NoWait }
 	}
 	ElseIf ($deploymentType -ieq 'Uninstall')
 	{
@@ -175,7 +173,6 @@ Try {
 		[string]$installPhase = 'Pre-Uninstallation'
 
 		## Show Progress Message (with the default message)
-		Show-InstallationProgress
 
 		## <Perform Pre-Uninstallation tasks here>
 
@@ -192,7 +189,7 @@ Try {
 		}
 
 		# <Perform Uninstallation tasks here>
-		Execute-MSI -Action 'Install' -Path "$dirFiles\Teams_windows_x64.msi" -Parameters '/qn /NORESTART ALLUSER=1 ALLUSERS=1'
+		Execute-MSI -Action 'Uninstall' -Path "$dirFiles\Teams_windows_x64.msi" -Parameters '/qn /NORESTART ALLUSER=1 ALLUSERS=1'
 
 
 		##*===============================================
@@ -205,8 +202,13 @@ Try {
 		$profilePaths = Get-UserProfiles | Select-Object -ExpandProperty 'ProfilePath' 
         foreach ($profile in $profilePaths ) {
         	Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
-            Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Office\Teams'
 		}
+
+		[scriptblock]$HKCURegistryChanges = {
+			Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Office\Teams' -SID $UserProfile.SID -Recurse
+			Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Teams' -SID $UserProfile.SID -Recurse
+		}
+		Invoke-HKCURegistrySettingsForAllUsers -RegistrySettings $HKCURegistryChanges
 
 		Remove-RegistryKey -Key "$appRegKey" -Name $appRegKeyName
 	}
