@@ -130,7 +130,11 @@ Try {
 
 		$profilePaths = Get-UserProfiles | Select-Object -ExpandProperty 'ProfilePath' 
         foreach ($profile in $profilePaths ) {
-        	Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\TeamsPresenceAddin"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\TeamsMeetingAddin"
+			Remove-Folder -Path "$profile\Appdata\Local\SquirrelTemp"
+			Remove-Folder -Path "$profile\Appdata\Roaming\Microsoft\Teams"
 		}
 
 		[scriptblock]$HKCURegistryChanges = {
@@ -138,6 +142,12 @@ Try {
 			Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Teams' -SID $UserProfile.SID
 		}
 		Invoke-HKCURegistrySettingsForAllUsers -RegistrySettings $HKCURegistryChanges
+
+		## Create the HKLM\SOFTWARE\Citrix\PortICA registry key because you need that for the MWI install
+		if (!(Test-Path -Path 'HKLM:\SOFTWARE\Citrix\PortICA' -PathType 'Container') -and !(Test-Path -Path 'HKLM:\Software\VMware, Inc.\VMware VDM\Agent' -PathType 'Container')) {
+			Write-Log "Creating dummy HKLM\SOFTWARE\Citrix\PortICA key as I don't seem to be running on a VDA"
+			Set-RegistryKey -Key 'HKLM\SOFTWARE\Citrix\PortICA' -Value '(Default)'
+		}
 
 		##*===============================================
 		##* INSTALLATION
@@ -201,7 +211,11 @@ Try {
 		## Delete Teams from all the local profiles. Also delete the registry keys from HKCU.
 		$profilePaths = Get-UserProfiles | Select-Object -ExpandProperty 'ProfilePath' 
         foreach ($profile in $profilePaths ) {
-        	Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\TeamsPresenceAddin"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\TeamsMeetingAddin"
+			Remove-Folder -Path "$profile\Appdata\Local\SquirrelTemp"
+			Remove-Folder -Path "$profile\Appdata\Roaming\Microsoft\Teams"
 		}
 
 		[scriptblock]$HKCURegistryChanges = {

@@ -125,7 +125,11 @@ Try {
 
 		$profilePaths = Get-UserProfiles | Select-Object -ExpandProperty 'ProfilePath' 
         foreach ($profile in $profilePaths ) {
-        	Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\TeamsPresenceAddin"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\TeamsMeetingAddin"
+			Remove-Folder -Path "$profile\Appdata\Local\SquirrelTemp"
+			Remove-Folder -Path "$profile\Appdata\Roaming\Microsoft\Teams"
 		}
 
 		[scriptblock]$HKCURegistryChanges = {
@@ -192,7 +196,11 @@ Try {
 		## Delete Teams from all the local profiles. Also delete the registry keys from HKCU.
 		$profilePaths = Get-UserProfiles | Select-Object -ExpandProperty 'ProfilePath' 
         foreach ($profile in $profilePaths ) {
-        	Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\Teams"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\TeamsPresenceAddin"
+			Remove-Folder -Path "$profile\Appdata\Local\Microsoft\TeamsMeetingAddin"
+			Remove-Folder -Path "$profile\Appdata\Local\SquirrelTemp"
+			Remove-Folder -Path "$profile\Appdata\Roaming\Microsoft\Teams"
 		}
 
 		[scriptblock]$HKCURegistryChanges = {
