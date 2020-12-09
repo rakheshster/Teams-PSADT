@@ -62,7 +62,7 @@ Try {
 	##*===============================================
 	## Variables: Application
 	[string]$appVendor = 'Microsoft'
-	[string]$appName = 'Teams (Machine-Wide Install)'
+	[string]$appName = 'Teams'
 	[string]$appVersion = '1.3.0.28779'
 	[string]$appArch = ''
 	[string]$appLang = 'EN'
@@ -70,11 +70,6 @@ Try {
 	[string]$appScriptVersion = '1.0.0'
 	[string]$appScriptDate = '03/12/2020'
 	[string]$appScriptAuthor = 'Rakhesh Sasidharan'
-
-	## Variables added by me to track installation status in SCCM. I tattoo these in the registry.
-	[string]$appRegKey = 'HKLM\SOFTWARE\TheFirm\Software'
-	[string]$appRegKeyName = 'Teams'
-	[string]$appRegKeyValue = '1.3.0.28779' # !!When you change this version be sure to update the detection method!!
 	##*===============================================
 	## Variables: Install Titles (Only set here to override defaults set by the toolkit)
 	[string]$installName = ''
@@ -151,18 +146,14 @@ Try {
 		}
 
 		## <Perform Installation tasks here>
-		## Note that "ALLUSER=1" is tyically for VDI environments only. The Teams application doesn’t auto-update whenever there is a new version.
 		## "ALLUSERS=1" means Teams is visible in Add/ Remove programs and anyone with admin priviliges can uninstall
 		## OPTIONS="noAutoStart=true" stops Teams from autolaunching
-		Execute-MSI -Action 'Install' -Path "$dirFiles\Teams_windows_x64.msi" -Parameters '/qn /NORESTART ALLUSER=1 ALLUSERS=1 OPTIONS="noAutoStart=true"'
+		Execute-MSI -Action 'Install' -Path "$dirFiles\Teams_windows_x64.msi" -Parameters '/qn /NORESTART ALLUSERS=1 OPTIONS="noAutoStart=true"'
 
 		##*===============================================
 		##* POST-INSTALLATION
 		##*===============================================
 		[string]$installPhase = 'Post-Installation'
-
-		## <Perform Post-Installation tasks here>
-		Set-RegistryKey -Key "$appRegKey" -Name "$appRegKeyName" -Value "$appRegKeyValue" -Type String -ContinueOnError:$True
 
 	}
 	ElseIf ($deploymentType -ieq 'Uninstall')
@@ -189,7 +180,7 @@ Try {
 		}
 
 		# <Perform Uninstallation tasks here>
-		Execute-MSI -Action 'Uninstall' -Path "$dirFiles\Teams_windows_x64.msi" -Parameters '/qn /NORESTART ALLUSER=1 ALLUSERS=1'
+		Execute-MSI -Action 'Uninstall' -Path "$dirFiles\Teams_windows_x64.msi" -Parameters '/qn /NORESTART ALLUSERS=1'
 
 
 		##*===============================================
@@ -209,8 +200,6 @@ Try {
 			Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Teams' -SID $UserProfile.SID -Recurse
 		}
 		Invoke-HKCURegistrySettingsForAllUsers -RegistrySettings $HKCURegistryChanges
-
-		Remove-RegistryKey -Key "$appRegKey" -Name $appRegKeyName
 	}
 	ElseIf ($deploymentType -ieq 'Repair')
 	{
