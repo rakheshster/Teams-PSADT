@@ -174,6 +174,9 @@ Try {
 		## <Perform Post-Installation tasks here>
 		Set-RegistryKey -Key "$appRegKey" -Name "$appRegKeyName" -Value "$appRegKeyValue" -Type String -ContinueOnError:$True
 
+		# Remove the shortcut on the Desktop
+		Remove-File -Path "$envCommonDesktop\Microsoft Teams.lnk"
+
 	}
 	ElseIf ($deploymentType -ieq 'Uninstall')
 	{
