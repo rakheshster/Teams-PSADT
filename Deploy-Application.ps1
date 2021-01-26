@@ -174,9 +174,17 @@ Try {
 		## <Perform Post-Installation tasks here>
 		Set-RegistryKey -Key "$appRegKey" -Name "$appRegKeyName" -Value "$appRegKeyValue" -Type String -ContinueOnError:$True
 
+		## Things I might want to enable in the future, just putting it here as an FYI
 		# Remove the shortcut on the Desktop
 		# Remove-File -Path "$envCommonDesktop\Microsoft Teams.lnk"
 
+		# Disable fallback so Teams doesn't use the Citrix 
+		# Set-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Teams' -Name DisableFallback -Value '1' -Type DWord
+
+		# Disable the autorun key. Let users launch it manually.
+		# Remove-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
+		# Remove-RegistryKey -Key 'HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
+		
 	}
 	ElseIf ($deploymentType -ieq 'Uninstall')
 	{
