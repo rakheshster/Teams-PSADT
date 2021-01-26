@@ -69,3 +69,5 @@ Since the original release I have modified the `Deploy-Application.ps1` script w
 I decided to leave them commented so anyone using this script knows these options are there if they want to uncomment and enable. I pushed these out via Group Policy Preferences in my environment.
 
 I have a [follow up blog post](https://rakhesh.com/?p=5456&preview=true) where I talk about how frustrating it is to disable Teams auto-launch.
+
+The `Teams-Tweaks.ps1` script in this repo is not needed for PSADT but is something I created for the blog post above. It is a useful addition if you are deploying Teams to VDI solutions. 
