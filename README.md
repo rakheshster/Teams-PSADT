@@ -52,21 +52,21 @@ if (!(Test-Path -Path 'HKLM:\SOFTWARE\Citrix\PortICA' -PathType 'Container') -an
 That's all!
 
 ## Update (26 Jan 2021)
-Since the original release I have modified the `Deploy-Application.ps1` script with the following commented out entries:
+Since the original release I have modified the `Deploy-Application.ps1` script with the following:
 
 ```powershell
 # Remove the shortcut on the Desktop
 # Remove-File -Path "$envCommonDesktop\Microsoft Teams.lnk"
 
 # Disable fallback so Teams doesn't use the Citrix 
-# Set-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Teams' -Name DisableFallback -Value '1' -Type DWord
+Set-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Teams' -Name DisableFallback -Value '1' -Type DWord
 
 # Disable the autorun key. Let users launch it manually.
-# Remove-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
-# Remove-RegistryKey -Key 'HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
+Remove-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
+Remove-RegistryKey -Key 'HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
 ```
 
-I decided to leave them commented so anyone using this script knows these options are there if they want to uncomment and enable. I pushed these out via Group Policy Preferences in my environment.
+I decided to leave some of these commented so anyone using this script knows these options are there if they want to uncomment and enable. I pushed these out via Group Policy Preferences in my environment.
 
 I have a [follow up blog post](https://rakhesh.com/?p=5456&preview=true) where I talk about how frustrating it is to disable Teams auto-launch.
 

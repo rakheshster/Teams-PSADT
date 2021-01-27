@@ -179,11 +179,11 @@ Try {
 		# Remove-File -Path "$envCommonDesktop\Microsoft Teams.lnk"
 
 		# Disable fallback so Teams doesn't use the Citrix 
-		# Set-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Teams' -Name DisableFallback -Value '1' -Type DWord
+		Set-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Teams' -Name DisableFallback -Value '1' -Type DWord
 
 		# Disable the autorun key. Let users launch it manually.
-		# Remove-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
-		# Remove-RegistryKey -Key 'HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
+		Remove-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
+		Remove-RegistryKey -Key 'HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
 		
 	}
 	ElseIf ($deploymentType -ieq 'Uninstall')
