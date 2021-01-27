@@ -1,14 +1,14 @@
 # PSADT package for installing Teams
 This is a [PSADT (PowerShell AppDeployment Toolkit)](https://psappdeploytoolkit.com/) package for installing Teams. Before using this you need to get the Teams MSI installer. You can get it [here](https://docs.microsoft.com/en-us/microsoftteams/msi-deployment). Download and put into the `Files` folder. 
 
-I have some notes on Teams installation options on [my blog](https://rakhesh.com/citrix/notes-on-teams-locations-installing-etc/) taken when I was figuring it out. I am no expert on this topic so please take it with a pinch of salt. 
+I have some notes on Teams installation options on [my blog](https://rakhesh.com/citrix/notes-on-teams-locations-installing-etc/) taken when I was figuring it out. There's also a [follow up blog post](https://rakhesh.com/?p=5456&preview=true) where I talk about how frustrating it is to disable Teams auto-launch. I am no expert on this topic so please take my notes with a pinch of salt. :) 
 
-My intention is to install Teams in a VDI environment. 
+My end goal was to install Teams in a VDI environment. 
 
 ## Installing Teams
-Typically you install Teams to a machine and it adds hooks to each user's profiles and takes care of keeping itself up to date. That's the default way of installing Teams. However you can also install it per-machine (confusing, coz the default way is also to install it per machine! go figure) and this one also adds hooks but doesn't keep itself up to date - that is your responsibility. This latter method of installing is also the Teams MWI (Machine Wide Installer). 
+Typically you install Teams to a machine and it adds hooks to each user's profiles and takes care of keeping itself up to date. However you can also install it per-machine (confusing, coz the default way is also to install it per machine) and this one also adds hooks but doesn't keep itself up to date - that is your responsibility. This latter method of installing is also the Teams MWI (Machine Wide Installer). 
 
-As far as I understand the only difference between the two is that with the latter you control when Teams is updated. The latter is a newer option (May 2019) and that's probably why most instructions on the Internet are about the former way of installing.
+As far as I understand the only difference between the two is that with the latter you control when Teams is updated. But I am not a 100% sure. Based on using the MWI version it looks like it installs to a location in `Program Files` and that's where all users run it from (unlike the other installer which runs from each users' `AppData` folder). The MWI version is a newer option (May 2019) and it's likely that most instructions on the Internet implictly refer to the other version and hence it's confusing. 
 
 Microsoft's preferred approach is for you to use the typical way wherein it auto-updates. They suggest the alternative only for VDA installs. In fact, the Machine-Wide Installer does not work on non-VDA systems as far as I know so you have to trick the installer into thinking it is running on a VDA. [This blog post](https://www.masterpackager.com/blog/mst-to-install-microsoft-teams-msi-vdi-to-regular-windows-10) has some info. This PSADT package creates a dummy Citrix key to trick the installer to succeed (because I assume if you are running it on a non-VDA you want it to install).
 
@@ -55,9 +55,6 @@ That's all!
 Since the original release I have modified the `Deploy-Application.ps1` script with the following:
 
 ```powershell
-# Remove the shortcut on the Desktop
-# Remove-File -Path "$envCommonDesktop\Microsoft Teams.lnk"
-
 # Disable fallback so Teams doesn't use the Citrix 
 Set-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Teams' -Name DisableFallback -Value '1' -Type DWord
 
@@ -66,8 +63,4 @@ Remove-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Na
 Remove-RegistryKey -Key 'HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
 ```
 
-I decided to leave some of these commented so anyone using this script knows these options are there if they want to uncomment and enable. I pushed these out via Group Policy Preferences in my environment.
-
-I have a [follow up blog post](https://rakhesh.com/?p=5456&preview=true) where I talk about how frustrating it is to disable Teams auto-launch.
-
-The `Teams-Tweaks.ps1` script in this repo is not needed for PSADT but is something I created for the blog post above. It is a useful addition if you are deploying Teams to VDI solutions. 
+The `Teams-Tweaks.ps1` script in this repo is not needed for PSADT but is something I created for the blog post above. It is a useful addition if you are deploying Teams to VDI solutions. In my testing however, while the script works Teams seems to ignore it... so ¯\_(ツ)_/¯
