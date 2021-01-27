@@ -63,4 +63,4 @@ Remove-RegistryKey -Key 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Na
 Remove-RegistryKey -Key 'HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run' -Name 'Teams'
 ```
 
-The `Teams-Tweaks.ps1` script in this repo is not needed for PSADT but is something I created for the blog post above. It is a useful addition if you are deploying Teams to VDI solutions. In my testing however, while the script works Teams seems to ignore it... so ¯\_(ツ)_/¯
+The `Teams-Tweaks.ps1` script in this repo is not needed for PSADT but is something I created for the blog post above. It is a useful addition if you are deploying Teams to VDI solutions. In my testing however, while the script works Teams seems to ignore it... so 🤷
