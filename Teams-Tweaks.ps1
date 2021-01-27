@@ -1,4 +1,5 @@
 # Script created by me based on the work of others. I have a NIH syndrome. :) 
+# Note: the script works, but personally I haven't managed to get Teams to honour it. I use the Teams MWI and that just seems to ignore it. YMMV. 
 param(
     # Enable or disable GPU acceleration? 
     [boolean]$disableGpu = $true,
